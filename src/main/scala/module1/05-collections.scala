@@ -1,5 +1,7 @@
 package module1
 
+import scala.util.Random
+
 object coll{
 
   // создать список чисел
@@ -67,5 +69,13 @@ object coll{
   val result1 = numbers.filter(_ % 2 == 0).map(_ * 2).reverse
 
   val result2 = numbers.distinct.drop(2).take(2).map(_ * 10)
+
+  class Experiment {
+  val balls: List[Int] = List(1, 1, 1, 0, 0, 0)
+    def takeBalls: Boolean = {
+      val randomTake = Random.shuffle(balls).take(2)
+      randomTake.contains(1)
+    }
+  }
 
 }
