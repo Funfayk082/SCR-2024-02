@@ -71,22 +71,22 @@ object entrant {
     
     case class Cyrillic50Chars private(c: Cyrillic, r: Range50) // Cyrillic * Range50
 
-    object Cyrillic50Chars{
-      def from(str: String): Option[Cyrillic50Chars] = {
-        val c = Cyrillic.from(str)
-        val r = Range50.from(str)
-        c.zip(r).map(tuple => Cyrillic50Chars(tuple._1, tuple._2))
-      }
-    }
+//    object Cyrillic50Chars{
+//      def from(str: String): Option[Cyrillic50Chars] = {
+//        val c = Cyrillic.from(str)
+//        val r = Range50.from(str)
+//        c.zip(r).map(tuple => Cyrillic50Chars(tuple._1, tuple._2))
+//      }
+//    }
 
     final case class Cyrillic private (str: String)
 
-    object Cyrillic{
-      def from(str: String): Option[Cyrillic] = {
-        val isCyrillic: Regex = "['\\p{IsCyrillic}]*".r
-        Option(str).filter(isCyrillic.matches).map(Cyrillic(_))
-      }
-    }
+//    object Cyrillic{
+//      def from(str: String): Option[Cyrillic] = {
+//        val isCyrillic: Regex = "['\\p{IsCyrillic}]*".r
+//        Option(str).filter(isCyrillic.matches).map(Cyrillic(_))
+//      }
+//    }
 
     case class FirstName(value: Cyrillic50Chars)
 

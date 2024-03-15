@@ -88,8 +88,8 @@ object hof{
 
   def sum(x: Int, y: Int): Int = x + y
 
-  val _: Int => Int => Int = sum _.curried
-  val p: Int => Int = (sum _.curried)(2)
+  val _: Int => Int => Int = (sum _).curried
+  val p: Int => Int = (sum _).curried(2)
   p(3) // 5
 
 
@@ -230,22 +230,72 @@ object hof{
     */
 
 
-    sealed trait List[T]{
+    sealed trait List[+T]{
 
-     // def ::
 
-     // map
+      def ::[TT >: T](el: TT): List[TT] = new ::(el, this)
 
-     // flatMap
+
+      def isEmpty = this match {
+        case ::(_, _) => false
+        case Nil => true
+      }
+
+
+      def reverse: List[T] = foldLeft(List[T]()){ case (acc, el) => el :: acc}
+
+      def :::[TT >: T](that: List[TT]): List[TT] = {
+        def go(l1: List[TT], l2: List[TT], acc: List[TT]): List[TT] = l2 match {
+          case ::(head, tail) => go(l1, tail, head :: acc)
+          case Nil => l1 match {
+            case ::(head, tail) => go(tail, l2, head :: acc)
+            case Nil => acc
+          }
+        }
+        if(this.isEmpty) that
+        else if(that.isEmpty) this
+        else {
+          go(this, that, Nil).reverse
+        }
+      }
+
+      def map[B](f: T => B): List[B] = flatMap(t => List(f(t)))
+
+      def flatMap[B](f: T => List[B]): List[B] = this match {
+        case ::(head, tail) =>
+          f(head) ::: tail.flatMap(f)
+        case Nil => Nil
+      }
+
+
+      @tailrec
+      final def foldLeft[B](acc: B)(op: (B, T) => B): B = this match {
+        case ::(head, tail) => tail.foldLeft(op(acc, head))(op)
+        case Nil => acc
+      }
+
+      def take(n: Int): List[T] = this.foldLeft((0, List[T]())){ case ((i, acc), el) =>
+        if(i == n) (i, acc)
+        else (i + 1, el :: acc)
+      }._2.reverse
+
+      def drop(n: Int): List[T] = this.foldLeft((0, List[T]())){ case ((i, acc), el) =>
+        if(i >= n) (i + 1, el :: acc)
+        else (i + 1, acc)
+      }._2.reverse
+
 
     }
 
+   case class ::[A](head: A, tail: List[A]) extends List[A]
+
+   case object Nil extends List[Nothing]
     object List{
-      case class ::[A](head: A, tail: List[A]) extends List[A]
-      case object Nil extends List[Nothing]
+
+      def empty[T]: List[T] = apply()
 
       def apply[A](v: A*): List[A] =
-        if(v.isEmpty) List.Nil else ::(v.head, apply(v.tail:_*))
+        if(v.isEmpty) Nil else ::(v.head, apply(v.tail:_*))
     }
 
 
