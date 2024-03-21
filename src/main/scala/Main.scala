@@ -1,7 +1,8 @@
 
-import module1.{executor, hof, lazyOps, list, threads, type_system}
+import module1.{executor, future, hof, lazyOps, list, threads, try_, type_system}
 
 import java.util.concurrent.Executor
+import scala.concurrent.Future
 
 
 object Main {
@@ -39,16 +40,27 @@ object Main {
 //    t2.join()
 //    t1.start()
 
-    def combined: threads.ToyFuture[Int] = for{
-      v1 <- threads.getRatesLocation7
-      v2 <- threads.getRatesLocation8
-    } yield  v1 + v2
+//    def combined: threads.ToyFuture[Int] = for{
+//      v1 <- threads.getRatesLocation7
+//      v2 <- threads.getRatesLocation8
+//    } yield  v1 + v2
+//
+//    combined.onComplete(println)
+//
+//    threads.printRunningTime(combined)
 
-    combined.onComplete(println)
+     def ratesF: Future[Unit] = {
+       val f1 = future.getRatesLocation1
+       val f2 = future.getRatesLocation2
+       f1.flatMap{ i1 =>
+         f2.map{ i2 =>
+           println(i1 + i2)
+         }(future.ec)
+       }(future.ec)
 
-    threads.printRunningTime(combined)
+     }
 
-
+     future.printRunningTime(ratesF)
 
   }
 }

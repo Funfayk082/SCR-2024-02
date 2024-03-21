@@ -21,16 +21,5 @@ object task_futures_sequence {
    * @return асинхронную задачу с кортежом из двух списков
    */
   def fullSequence[A](futures: List[Future[A]])
-                     (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] =
-    futures.foldRight(Future.successful(List.empty[A], List.empty[Throwable])) { case (f, acc) =>
-      {}
-      val p = Promise[(List[A], List[Throwable])]
-
-      acc.onSuccess({case (success, failure) => f.onComplete({
-        case Failure(exception) => p.success((success, exception :: failure))
-        case Success(value) => p.success(value :: success, failure)
-      })})
-
-      p.future
-    }
+                     (implicit ex: ExecutionContext): Future[(List[A], List[Throwable])] = ???
 }

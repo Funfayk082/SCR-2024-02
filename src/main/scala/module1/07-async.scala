@@ -150,7 +150,32 @@ object executor {
 
 object try_{
 
-  def readFromFile() = ???
+  def readFromFile(): List[Int] = {
+    val s: BufferedSource = Source.fromFile(new File("ints.txt"))
+    val result = try{
+      s.getLines().toList.map(_.toInt)
+    } catch {
+      case e: Exception =>
+        println(e.getMessage)
+        Nil
+    } finally {
+      s.close()
+    }
+    result
+  }
+
+  def readFromFile2(): Try[List[Int]] = {
+    val source: Try[BufferedSource] = Try(Source.fromFile(new File("ints.txt")))
+    def lines(s: BufferedSource) =  Try(s.getLines().toList.map(_.toInt))
+    val r = for{
+      s <- source
+      v <- lines(s)
+    } yield v
+    source.foreach(_.close())
+    r
+  }
+
+
 
 
 }
@@ -160,12 +185,75 @@ object future{
 
   def longRunningComputation: Int = ???
 
+   val f1: Future[Int] = Future(longRunningComputation)(scala.concurrent.ExecutionContext.global)
+   val f2 = Future.successful(10)
+   val f3 = Future.failed(new Throwable("Ooops"))
+   val f4 = Future.fromTry(Try(longRunningComputation))
 
+
+  def getRatesLocation1: Future[Int] = Future{
+    Thread.sleep(1000)
+    println("GetRatesLocation1")
+    10
+  }(scala.concurrent.ExecutionContext.global)
+
+  def getRatesLocation2: Future[Int] = Future{
+    Thread.sleep(2000)
+    println("GetRatesLocation2")
+    20
+  }(scala.concurrent.ExecutionContext.global)
 
 
 
   // Execution contexts
 
+  lazy val ec = ExecutionContext.fromExecutor(executor.pool1)
+  lazy val ec2 = ExecutionContext.fromExecutor(executor.pool2)
+  lazy val ec3 = ExecutionContext.fromExecutor(executor.pool3)
+  lazy val ec4 = ExecutionContext.fromExecutor(executor.pool4)
 
+  def printRunningTime[A](v: => Future[A]): Future[A] = {
+    def log(start: Long, end: Long) = Future.fromTry(Try(println(s"Running time ${end - start}")))
+//    Future.fromTry(Try(System.currentTimeMillis())).flatMap{s =>
+//      v.flatMap{ r =>
+//        Future.fromTry(Try(System.currentTimeMillis())).flatMap{ e =>
+//          log(s, e).map{ _ =>
+//            r
+//          }(ec)
+//        }(ec)
+//      }(ec)
+//    }(ec)
+
+    implicit val iec = ec
+
+    for{
+      s <- Future.fromTry(Try(System.currentTimeMillis()))
+      r <- v
+      e <- Future.fromTry(Try(System.currentTimeMillis()))
+      _ <-  log(s, e)
+    } yield r
+  }
+
+  getRatesLocation1.onComplete {
+    case Failure(exception) => ???
+    case Success(value) => ???
+  }(ec)
+
+  val r: Unit = getRatesLocation1.foreach(i => println(i))(ec)
+  getRatesLocation1.recover{
+    case e: Throwable => 0
+  }(ec)
+
+
+  object FutureSyntax{
+    def map[T, B](future: Future[T])(f: T => B)(implicit ec: ExecutionContext): Future[B] = {
+      val p = Promise[B]
+      future.onComplete {
+        case Failure(exception) => p.failure(exception)
+        case Success(value) => p.complete(Try(f(value)))
+      }
+      p.future
+    }
+  }
 
 }
