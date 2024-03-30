@@ -1,5 +1,7 @@
 
+import module1.implicits.{implicit_conversions, implicit_scopes}
 import module1.{executor, future, hof, lazyOps, list, threads, try_, type_system}
+import module2.functional_effects.functionalProgram.{declarativeEncoding, executableEncoding}
 
 import java.util.concurrent.Executor
 import scala.concurrent.Future
@@ -49,18 +51,22 @@ object Main {
 //
 //    threads.printRunningTime(combined)
 
-     def ratesF: Future[Unit] = {
-       val f1 = future.getRatesLocation1
-       val f2 = future.getRatesLocation2
-       f1.flatMap{ i1 =>
-         f2.map{ i2 =>
-           println(i1 + i2)
-         }(future.ec)
-       }(future.ec)
+//     def ratesF: Future[Unit] = {
+//       val f1 = future.getRatesLocation1
+//       val f2 = future.getRatesLocation2
+//       f1.flatMap{ i1 =>
+//         f2.map{ i2 =>
+//           println(i1 + i2)
+//         }(future.ec)
+//       }(future.ec)
+//
+//     }
+//
+//     future.printRunningTime(ratesF)
 
-     }
+  //  implicit_scopes.result
 
-     future.printRunningTime(ratesF)
+    declarativeEncoding.interpret(declarativeEncoding.greet2)
 
   }
 }
